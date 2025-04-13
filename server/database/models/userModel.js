@@ -3,9 +3,14 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema(
   {
     email: String,
-    password: String,
+    password:{
+      select: true,//! passé à true sinon problème d'authentification
+      type: String,
+    },
+
     firstName: String,
-    lastName: String
+    lastName: String,
+    accounts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Account' }] 
   },
   {
     timestamps: true,

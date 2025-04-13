@@ -31,7 +31,8 @@ module.exports.getUserProfile = async serviceData => {
   try {
     const jwtToken = serviceData.headers.authorization.split('Bearer')[1].trim()
     const decodedJwtToken = jwt.decode(jwtToken)
-    const user = await User.findOne({ _id: decodedJwtToken.id })
+    //! a VERIFIER COMMENT FONCTIONNE
+    const user = await User.findOne({ _id: decodedJwtToken.id }, ['+password'])
 
     if (!user) {
       throw new Error('User not found!')

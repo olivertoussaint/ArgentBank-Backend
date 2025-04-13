@@ -1,0 +1,138 @@
+[
+  {
+    "id": "1",
+    "accountId": 1,
+    "date": "2020-06-20",
+    "amount": 5.0,
+    "description": "Golden Sun Bakery",
+    "balance": 2082.79
+  },
+  {
+    "id": "2",
+    "accountId": 1,
+    "date": "2020-06-20",
+    "amount": 10.0,
+    "description": "Golden Sun Bakery",
+    "balance": 2087.79
+  },
+  {
+    "id": "3",
+    "accountId": 1,
+    "date": "2020-06-20",
+    "amount": 20.0,
+    "description": "Golden Sun Bakery",
+    "balance": 2097.79
+  },
+  {
+    "id": "4",
+    "accountId": 1,
+    "date": "2020-06-20",
+    "amount": 30.0,
+    "description": "Golden Sun Bakery",
+    "balance": 2117.79
+  },
+  {
+    "id": "5",
+    "accountId": 1,
+    "date": "2020-06-20",
+    "amount": 40.0,
+    "description": "Golden Sun Bakery",
+    "balance": 2147.79
+  },
+  {
+    "id": "6",
+    "accountId": 1,
+    "date": "2020-06-20",
+    "amount": 50.0,
+    "description": "Golden Sun Bakery",
+    "balance": 2187.79
+  },
+  {
+    "id": "7",
+    "accountId": 2,
+    "date": "2020-06-21",
+    "amount": 5.0,
+    "description": "Golden Sun Bakery",
+    "balance": 10928.42
+  },
+  {
+    "id": "8",
+    "accountId": 2,
+    "date": "2020-06-21",
+    "amount": 10.0,
+    "description": "Golden Sun Bakery",
+    "balance": 10938.42
+  },
+  {
+    "id": "9",
+    "accountId": 2,
+    "date": "2020-06-21",
+    "amount": 20.0,
+    "description": "Golden Sun Bakery",
+    "balance": 10958.42
+  },
+  {
+    "id": "10",
+    "accountId": 2,
+    "date": "2020-06-21",
+    "amount": 30.0,
+    "description": "Golden Sun Bakery",
+    "balance": 10988.42
+  },
+  {
+    "id": "11",
+    "accountId": 2,
+    "date": "2020-06-21",
+    "amount": 40.0,
+    "description": "Golden Sun Bakery",
+    "balance": 11028.42
+  },
+  {
+    "id": "12",
+    "accountId": 2,
+    "date": "2020-06-21",
+    "amount": 50.0,
+    "description": "Golden Sun Bakery",
+    "balance": 11078.42
+  },
+  {
+    "id": "13",
+    "accountId": 3,
+    "date": "2020-06-22",
+    "amount": 5.0,
+    "description": "Golden Sun Bakery",
+    "balance": 184.3
+  },
+  {
+    "id": "14",
+    "accountId": 3,
+    "date": "2020-06-22",
+    "amount": 10.0,
+    "description": "Golden Sun Bakery",
+    "balance": 194.3
+  },
+  {
+    "id": "15",
+    "accountId": 3,
+    "date": "2020-06-22",
+    "amount": 20.0,
+    "description": "Golden Sun Bakery",
+    "balance": 214.3
+  },
+  {
+    "id": "16",
+    "accountId": 3,
+    "date": "2020-06-22",
+    "amount": 30.0,
+    "description": "Golden Sun Bakery",
+    "balance": 244.3
+  },
+  {
+    "id": "17",
+    "accountId": 3,
+    "date": "2020-06-22",
+    "amount": 50.0,
+    "description": "Golden Sun Bakery",
+    "balance": 294.3
+  }
+]

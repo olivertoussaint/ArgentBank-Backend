@@ -14,7 +14,7 @@ paths:
       tags:
         - User Module
       summary: Login
-      description: API for Login
+      description: API for user login
       parameters:
         - in: body
           name: body
@@ -26,23 +26,23 @@ paths:
         - application/json
       responses:
         '200':
-          description: Login Successfully
+          description: Login successfully
           schema:
             $ref: '#/definitions/LoginResponse'
         '400':
-          description: Invalid Fields
+          description: Invalid fields
         '500':
-          description: Internal Server Error
+          description: Internal server error
   /user/signup:
     post:
       tags:
         - User Module
       summary: Signup
-      description: API for Signup
+      description: API for user signup
       parameters:
         - in: body
           name: body
-          description: Signup Payload
+          description: Signup payload
           required: true
           schema:
             $ref: '#/definitions/User'
@@ -50,94 +50,129 @@ paths:
         - application/json
       responses:
         '200':
-          description: Signup Successfully
+          description: Signup successfully
           schema:
             $ref: '#/definitions/ApiResponse'
         '400':
-          description: Invalid Fields
+          description: Invalid fields
         '500':
-          description: Internal Server Error
-  /user/profile:
-    post:
-      security:
-        - Bearer: []
+          description: Internal server error
+  /accounts:
+    get:
       tags:
-        - User Module
-      summary: User Profile API
-      description: API for fetching a user profile
-      parameters:
-        - in: header
-          name: Authorization
-          description: Attach Bearer JWT token
-          required: true
+        - Accounts Module
+      summary: Fetch all accounts
+      description: API to fetch all accounts
       produces:
         - application/json
       responses:
         '200':
-          description: User profile retrieved successully
+          description: Accounts fetched successfully
           schema:
-            $ref: '#/definitions/ApiResponse'
-        '400':
-          description: Invalid Fields
+            type: array
+            items:
+              $ref: '#/definitions/Account'
         '500':
-          description: Internal Server Error
-    put:
-      security:
-        - Bearer: []
+          description: Internal server error
+  /accounts/{accountId}:
+    get:
       tags:
-        - User Module
-      summary: User Profile API
-      description: API for updating a user profile
+        - Accounts Module
+      summary: Fetch account details
+      description: API to fetch account details by ID
       parameters:
-        - in: header
-          name: Authorization
-          description: Attach Bearer JWT token
+        - in: path
+          name: accountId
           required: true
-        - in: body
-          name: body
-          description: Update user profile attributes
-          required: true
-          schema:
-            $ref: '#/definitions/UserProfile'
+          type: string
+          description: The ID of the account
       produces:
         - application/json
       responses:
         '200':
-          description: User profile retrieved successully
+          description: Account fetched successfully
           schema:
-            $ref: '#/definitions/ApiResponse'
-        '400':
-          description: Invalid Fields
+            $ref: '#/definitions/AccountWithTransactions'
+        '404':
+          description: Account not found
         '500':
-          description: Internal Server Error
-securityDefinitions:
-  Bearer:
-    type: apiKey
-    name: Authorization
-    in: header
+          description: Internal server error
+  /accounts/{accountId}/transactions:
+    get:
+      tags:
+        - Transactions Module
+      summary: Fetch transactions by account ID
+      description: API to fetch all transactions for a specific account
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          type: string
+          description: The ID of the account
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Transactions fetched successfully
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Transaction'
+        '404':
+          description: Account not found
+        '500':
+          description: Internal server error
+  /accounts/{accountId}/transactions/{transactionId}:
+    get:
+      tags:
+        - Transactions Module
+      summary: Fetch transaction details
+      description: API to fetch details of a specific transaction for an account
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          type: string
+          description: The ID of the account
+        - in: path
+          name: transactionId
+          required: true
+          type: string
+          description: The ID of the transaction
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Transaction fetched successfully
+          schema:
+            $ref: '#/definitions/Transaction'
+        '404':
+          description: Transaction not found
+        '500':
+          description: Internal server error
 definitions:
   User:
+    type: object
     properties:
       email:
         type: string
-        description: user email
+        description: User email
       password:
         type: string
-        description: user password
+        description: User password
       firstName:
         type: string
-        description: user first name
+        description: User first name
       lastName:
         type: string
-        description: user last name
+        description: User last name
   Login:
+    type: object
     properties:
       email:
         type: string
-        description: user email
       password:
         type: string
-        description: user password
   ApiResponse:
     type: object
     properties:
@@ -147,20 +182,38 @@ definitions:
         type: string
       body:
         type: object
-        properties:
-          id:
-            type: string
-          email:
-            type: string
   LoginResponse:
     type: object
     properties:
       token:
         type: string
-  UserProfile:
+  Account:
     type: object
     properties:
-      firstName:
+      accountId:
         type: string
-      lastName:
+      transactionsCount:
+        type: integer
+  AccountWithTransactions:
+    type: object
+    properties:
+      accountId:
         type: string
+      transactions:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+  Transaction:
+    type: object
+    properties:
+      id:
+        type: string
+      date:
+        type: string
+        format: date
+      amount:
+        type: number
+      description:
+        type: string
+      balance:
+        type: number
