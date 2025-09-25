@@ -131,7 +131,7 @@ Vous pouvez également consulter la documentation complète de l’API via Swagg
 ## 🗂 Workflow API / Swagger / Postman
 
 <p align="center">
-  <img src="postman/ArgentBank-Workflow.png" alt="Workflow Argent Bank API" width="600">
+  <img src="postman/ArgentBank-Workflow.png" alt="Workflow Argent Bank API" width="250">
 </p>
 
 - **API** : votre serveur Express/MongoDB sur `http://localhost:3001/api/v1`.
