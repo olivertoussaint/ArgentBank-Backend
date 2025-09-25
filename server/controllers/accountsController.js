@@ -8,7 +8,6 @@ module.exports = {
       const accounts = await Account.find().populate("transactions");
       res.status(200).json(accounts);
     } catch (error) {
-      console.error("Error fetching accounts:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
@@ -23,7 +22,6 @@ module.exports = {
       }
       res.status(200).json(account);
     } catch (error) {
-      console.error("Error fetching account:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
@@ -38,7 +36,6 @@ module.exports = {
       }
       res.status(200).json(transactions);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
@@ -53,7 +50,6 @@ module.exports = {
       }
       res.status(200).json(transaction);
     } catch (error) {
-      console.error("Error fetching transaction:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },

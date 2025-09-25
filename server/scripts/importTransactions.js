@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const Transaction = require('../database/models/transactionModel'); // Assurez-vous que ce chemin est correct
+const Transaction = require('../database/models/transactionModel'); 
 
 // Chemin vers le fichier JSON contenant les transactions
 const filePath = path.join(__dirname, '../data/transactions.json');
@@ -14,8 +14,6 @@ const importTransactions = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-
-    console.log('Connected to MongoDB');
 
     // Charger les données depuis le fichier JSON
     const transactions = JSON.parse(fs.readFileSync(filePath, 'utf8'));

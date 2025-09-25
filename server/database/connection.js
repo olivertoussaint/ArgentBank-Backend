@@ -1,13 +1,8 @@
-const mongoose = require('mongoose')
-const databaseUrl =
-  process.env.DATABASE_URL || 'mongodb://localhost/argentBankDB'
+// server/database/connection.js
+const mongoose = require("mongoose");
+const { DATABASE_URL } = require("../config"); 
 
-module.exports = async () => {
-  try {
-    await mongoose.connect(databaseUrl, { useNewUrlParser: true })
-    console.log('Database successfully connected')
-  } catch (error) {
-    console.error(`Database Connectivity Error: ${error}`)
-    throw new Error(error)
-  }
-}
+module.exports = async function dbConnection() {
+  console.log("🔌 Connecting MongoDB...");
+  await mongoose.connect(DATABASE_URL); // mongoose >= 7: pas d'options legacy
+};

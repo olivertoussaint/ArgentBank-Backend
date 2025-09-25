@@ -1,21 +1,30 @@
-const express = require('express');
-const userRoutes = require('./userRoutes');
-const transactionsRoutes = require('./transactionsRoutes');
-const accountsRoutes = require('./accountsRoutes');
+// server/routes/index.js
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the API!' });
+router.get("/", (_req, res) => {
+  res.json({
+    message: "Welcome to the Argent Bank API [DEV MODE]",
+    status: "OK",
+  });
 });
 
-// User-related routes
-router.use('/user', userRoutes);
+const routesPath = __dirname;
+const SKIP = new Set(["index.js"]); // ← si tu laisses app.js monter /profile, ajoute "profileRoutes.js" ici
+const OVERRIDES = { user: "/users" }; // userRoutes.js => /users
 
-// Account-related routes, including transactions for specific accounts
-router.use('/accounts', accountsRoutes);
+fs.readdirSync(routesPath).forEach((file) => {
+  if (SKIP.has(file) || !file.endsWith("Routes.js")) return;
 
-// General transaction routes (if needed)
-router.use('/transactions', transactionsRoutes);
+  const base = file.replace("Routes.js", "");
+  const key = base.toLowerCase();
+  const routePrefix = OVERRIDES[key] || `/${key}`;
+
+  const routeModule = require(path.join(routesPath, file));
+  router.use(routePrefix, routeModule);
+});
 
 module.exports = router;

@@ -1,69 +1,132 @@
-const userService = require('../services/userService')
+// server/controllers/userController.js
+const jwt = require("jsonwebtoken");
+const userService = require("../services/userService");
+const MESSAGES = require("../utils/messages");
+const { SECRET_KEY } = require("../config");
 
-module.exports.createUser = async (req, res) => {
-  let response = {}
+// Helpers
+const ok = (message, body = {}) => ({ status: 200, message, body });
+const sendError = (res, err, fallback = 400) => {
+  const status = err?.status || err?.code || fallback;
+  const message = err?.message || "Unexpected error";
+  return res.status(status).json({ status, message });
+};
 
+/**
+ * POST /api/v1/users/signup
+ * body: { email, password, firstName, lastName }
+ * -> { status:200, message:"User successfully created", body:{ email, ... } }
+ */
+async function createUser(req, res) {
   try {
-    const responseFromService = await userService.createUser(req.body)
-    response.status = 200
-    response.message = 'User successfully created'
-    response.body = responseFromService
-  } catch (error) {
-    console.error('Something went wrong in userController.js', error)
-    response.status = 400
-    response.message = error.message
-  }
+    const user = await userService.createUser(req.body);
 
-  return res.status(response.status).send(response)
+    const flat = {
+      id: user.id || user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      accounts: user.accounts || [],
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    return res
+      .status(200)
+      .json(ok(MESSAGES?.USER_CREATED || "User successfully created", flat));
+  } catch (err) {
+    return sendError(res, err, 400);
+  }
 }
 
-module.exports.loginUser = async (req, res) => {
-  let response = {}
-
+/**
+ * POST /api/v1/users/login
+ * body: { email, password }
+ * -> { status:200, message:"Login successful", body:{ token, user } }
+ */
+async function loginUser(req, res) {
   try {
-    const responseFromService = await userService.loginUser(req.body)
-    response.status = 200
-    response.message = 'User successfully logged in'
-    response.body = responseFromService
-  } catch (error) {
-    console.error('Error in loginUser (userController.js)')
-    response.status = 400
-    response.message = error.message
-  }
+    const result = await userService.loginUser(req.body);
 
-  return res.status(response.status).send(response)
+    // Le service renvoie normalement { token, user }
+    let token = result?.token;
+    let user = result?.user || result;
+
+    if (!token) {
+      token = jwt.sign(
+        { id: user.id || user._id, email: user.email },
+        SECRET_KEY,
+        { expiresIn: "24h" }
+      );
+    }
+
+    return res.status(200).json(
+      ok(MESSAGES?.LOGIN_SUCCESS || "Login successful", {
+        token,
+        user,
+      })
+    );
+  } catch (err) {
+    // Les tests attendent 400 si mauvais mot de passe
+    if (err?.message === "Password is invalid") err.status = 400;
+    return sendError(res, err, 400);
+  }
 }
 
-module.exports.getUserProfile = async (req, res) => {
-  let response = {}
-
+/**
+ * GET /api/v1/profile  (ou POST /api/v1/profile si alias)
+ * header: Authorization: Bearer <token>
+ * -> { status:200, message, body:{ user } }
+ */
+async function getUserProfile(req, res) {
   try {
-    const responseFromService = await userService.getUserProfile(req)
-    response.status = 200
-    response.message = 'Successfully got user profile data'
-    response.body = responseFromService
-  } catch (error) {
-    console.log('Error in userController.js')
-    response.status = 400
-    response.message = error.message
+    const userId = req.user?.id; // injecté par validateToken
+    const user = await userService.getUserProfile(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: 404,
+        message: MESSAGES?.USER_NOT_FOUND || "User not found",
+      });
+    }
+    return res.status(200).json(
+      ok(
+        MESSAGES?.PROFILE_FETCH_SUCCESS ||
+          "User profile retrieved successfully",
+        {
+          user,
+        }
+      )
+    );
+  } catch (err) {
+    return sendError(res, err, 400);
   }
-
-  return res.status(response.status).send(response)
 }
 
-module.exports.updateUserProfile = async (req, res) => {
-  let response = {}
-
+/**
+ * PUT /api/v1/profile
+ * body: { firstName?, lastName? }
+ * -> { status:200, message, body:{ user } }
+ */
+async function updateUserProfile(req, res) {
   try {
-    const responseFromService = await userService.updateUserProfile(req)
-    response.status = 200
-    response.message = 'Successfully updated user profile data'
-    response.body = responseFromService
-  } catch (error) {
-    console.log('Error in updateUserProfile - userController.js')
-    response.status = 400
-    response.message = error.message
+    const userId = req.user?.id;
+    const user = await userService.updateUserProfile(userId, req.body || {});
+    return res.status(200).json(
+      ok(
+        MESSAGES?.PROFILE_UPDATE_SUCCESS || "User profile updated successfully",
+        {
+          user,
+        }
+      )
+    );
+  } catch (err) {
+    return sendError(res, err, 400);
   }
-
-  return res.status(response.status).send(response)
 }
+
+module.exports = {
+  createUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
+};

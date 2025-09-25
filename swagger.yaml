@@ -1,219 +1,449 @@
-swagger: '2.0'
+openapi: 3.0.3
 info:
   title: Bank Argent API documentation
   description: Contains all available API endpoints in this codebase
-  version: '1.0.0'
-  termsOfService: 'http://swagger.io/terms/'
-host: localhost:3001
-basePath: /api/v1
-schemes:
-  - http
+  version: "1.0.0"
+  termsOfService: "http://swagger.io/terms/"
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local server
+tags:
+  - name: Auth
+  - name: Accounts
+  - name: Transactions
+  - name: Profile
+
+security:
+  - bearerAuth: []
+
 paths:
   /user/login:
     post:
-      tags:
-        - User Module
+      tags: [Auth]
       summary: Login
       description: API for user login
-      parameters:
-        - in: body
-          name: body
-          description: Login Payload
-          required: true
-          schema:
-            $ref: '#/definitions/Login'
-      produces:
-        - application/json
+      security: [] # public (override global)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+            examples:
+              TonyStark:
+                value: { email: tony@stark.com, password: password123 }
+              SteveRogers:
+                value: { email: steve@rogers.com, password: password456 }
       responses:
-        '200':
+        "200":
           description: Login successfully
-          schema:
-            $ref: '#/definitions/LoginResponse'
-        '400':
-          description: Invalid fields
-        '500':
-          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              example: { token: eyJhbGciOiJIUzI1NiIsInR... }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /user/signup:
     post:
-      tags:
-        - User Module
+      tags: [Auth]
       summary: Signup
       description: API for user signup
-      parameters:
-        - in: body
-          name: body
-          description: Signup payload
-          required: true
-          schema:
-            $ref: '#/definitions/User'
-      produces:
-        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/User" }
+            example:
+              email: new.user@example.com
+              password: StrongPass!23
+              firstName: Alice
+              lastName: Smith
       responses:
-        '200':
+        "200":
           description: Signup successfully
-          schema:
-            $ref: '#/definitions/ApiResponse'
-        '400':
-          description: Invalid fields
-        '500':
-          description: Internal server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiResponse" }
+              example:
+                status: 200
+                message: Signup successfully
+                body: { id: u_12345, email: new.user@example.com }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /accounts:
     get:
-      tags:
-        - Accounts Module
+      tags: [Accounts]
       summary: Fetch all accounts
       description: API to fetch all accounts
-      produces:
-        - application/json
       responses:
-        '200':
+        "200":
           description: Accounts fetched successfully
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Account'
-        '500':
-          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Account" }
+              example:
+                - accountId: acc_001
+                  transactionsCount: 42
+                - accountId: acc_002
+                  transactionsCount: 5
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /accounts/{accountId}:
     get:
-      tags:
-        - Accounts Module
+      tags: [Accounts]
       summary: Fetch account details
       description: API to fetch account details by ID
       parameters:
-        - in: path
-          name: accountId
-          required: true
-          type: string
-          description: The ID of the account
-      produces:
-        - application/json
+        - $ref: "#/components/parameters/AccountIdParam"
       responses:
-        '200':
+        "200":
           description: Account fetched successfully
-          schema:
-            $ref: '#/definitions/AccountWithTransactions'
-        '404':
-          description: Account not found
-        '500':
-          description: Internal server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountWithTransactions" }
+              example:
+                accountId: acc_001
+                transactions:
+                  - id: tx_1001
+                    date: "2025-08-20T10:00:00.000Z"
+                    amount: -25.9
+                    description: Coffee shop
+                    balance: 2474.1
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /accounts/{accountId}/transactions:
     get:
-      tags:
-        - Transactions Module
+      tags: [Transactions]
       summary: Fetch transactions by account ID
       description: API to fetch all transactions for a specific account
       parameters:
-        - in: path
-          name: accountId
-          required: true
-          type: string
-          description: The ID of the account
-      produces:
-        - application/json
+        - $ref: "#/components/parameters/AccountIdParam"
       responses:
-        '200':
+        "200":
           description: Transactions fetched successfully
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Transaction'
-        '404':
-          description: Account not found
-        '500':
-          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items: { $ref: "#/components/schemas/Transaction" }
+              examples:
+                WithTransactions:
+                  value:
+                    transactions:
+                      - id: tx_1001
+                        accountId: acc_001
+                        date: "2025-08-20T10:00:00.000Z"
+                        amount: -25.9
+                        category: Coffee
+                        note: Morning espresso
+                      - id: tx_1002
+                        accountId: acc_001
+                        date: "2025-08-19T08:00:00.000Z"
+                        amount: 2000
+                        category: Salary
+                        note: August payroll
+                EmptyTransactions:
+                  value: { transactions: [] }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /accounts/{accountId}/transactions/{transactionId}:
     get:
-      tags:
-        - Transactions Module
+      tags: [Transactions]
       summary: Fetch transaction details
       description: API to fetch details of a specific transaction for an account
       parameters:
-        - in: path
-          name: accountId
-          required: true
-          type: string
-          description: The ID of the account
-        - in: path
-          name: transactionId
-          required: true
-          type: string
-          description: The ID of the transaction
-      produces:
-        - application/json
+        - $ref: "#/components/parameters/AccountIdParam"
+        - $ref: "#/components/parameters/TransactionIdParam"
       responses:
-        '200':
+        "200":
           description: Transaction fetched successfully
-          schema:
-            $ref: '#/definitions/Transaction'
-        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+              example:
+                transaction:
+                  id: tx_1001
+                  accountId: acc_001
+                  date: "2025-08-20T10:00:00.000Z"
+                  amount: -25.9
+                  category: Coffee
+                  note: Morning espresso
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
           description: Transaction not found
-        '500':
-          description: Internal server error
-definitions:
-  User:
-    type: object
-    properties:
-      email:
-        type: string
-        description: User email
-      password:
-        type: string
-        description: User password
-      firstName:
-        type: string
-        description: User first name
-      lastName:
-        type: string
-        description: User last name
-  Login:
-    type: object
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-  ApiResponse:
-    type: object
-    properties:
-      status:
-        type: integer
-      message:
-        type: string
-      body:
-        type: object
-  LoginResponse:
-    type: object
-    properties:
-      token:
-        type: string
-  Account:
-    type: object
-    properties:
-      accountId:
-        type: string
-      transactionsCount:
-        type: integer
-  AccountWithTransactions:
-    type: object
-    properties:
-      accountId:
-        type: string
-      transactions:
-        type: array
-        items:
-          $ref: '#/definitions/Transaction'
-  Transaction:
-    type: object
-    properties:
-      id:
-        type: string
-      date:
-        type: string
-        format: date
-      amount:
-        type: number
-      description:
-        type: string
-      balance:
-        type: number
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example: { message: Transaction not found, status: 404 }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /accounts/{accountId}/transactions/{transactionId}/category:
+    patch:
+      tags: [Transactions]
+      summary: Update transaction category
+      parameters:
+        - $ref: "#/components/parameters/AccountIdParam"
+        - $ref: "#/components/parameters/TransactionIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CategoryUpdate" }
+            example: { category: Food }
+      responses:
+        "200":
+          description: Updated transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+              example:
+                transaction:
+                  id: tx_1001
+                  accountId: acc_001
+                  date: "2025-08-20T10:00:00.000Z"
+                  amount: -25.9
+                  category: Food
+                  note: Morning espresso
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /accounts/{accountId}/transactions/{transactionId}/note:
+    patch:
+      tags: [Transactions]
+      summary: Update transaction note
+      parameters:
+        - $ref: "#/components/parameters/AccountIdParam"
+        - $ref: "#/components/parameters/TransactionIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NoteUpdate" }
+            example: { note: "Updated note" }
+      responses:
+        "200":
+          description: Updated transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+              example:
+                transaction:
+                  id: tx_1001
+                  accountId: acc_001
+                  date: "2025-08-20T10:00:00.000Z"
+                  amount: -25.9
+                  category: Coffee
+                  note: Updated note
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /profile:
+    get:
+      tags: [Profile]
+      summary: Get current user's profile
+      description: Return the authenticated user's profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              examples:
+                TonyStark:
+                  value: { id: u_tony, email: tony@stark.com, firstName: Tony, lastName: Stark }
+                SteveRogers:
+                  value: { id: u_steve, email: steve@rogers.com, firstName: Steve, lastName: Rogers }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      tags: [Profile]
+      summary: Update current user's profile
+      description: Update firstName/lastName of the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserProfileUpdate" }
+            example: { firstName: Anthony, lastName: Stark }
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              example: { id: u_tony, email: tony@stark.com, firstName: Anthony, lastName: Stark }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Enter your JWT token in the format **Bearer <your_token_here>**.
+
+  parameters:
+    AccountIdParam:
+      name: accountId
+      in: path
+      required: true
+      description: The ID of the account
+      schema: { type: string }
+
+    TransactionIdParam:
+      name: transactionId
+      in: path
+      required: true
+      description: The ID of the transaction
+      schema: { type: string }
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { message: Unauthorized, status: 401 }
+
+    ValidationError:
+      description: Invalid fields
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { message: Invalid fields, status: 422 }
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { message: Database error, status: 500 }
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { message: Resource not found, status: 404 }
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+      additionalProperties: false
+
+    Login:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+
+    ApiResponse:
+      type: object
+      properties:
+        status: { type: integer }
+        message: { type: string }
+        body:
+          type: object
+          additionalProperties: true
+
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string }
+
+    Account:
+      type: object
+      properties:
+        accountId: { type: string }
+        transactionsCount: { type: integer }
+
+    AccountWithTransactions:
+      type: object
+      properties:
+        accountId: { type: string }
+        transactions:
+          type: array
+          items: { $ref: "#/components/schemas/Transaction" }
+
+    Transaction:
+      type: object
+      properties:
+        id: { type: string }
+        accountId: { type: string }
+        date:
+          type: string
+          format: date-time
+        amount: { type: number }
+        category:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        balance:
+          type: number
+          nullable: true
+
+    CategoryUpdate:
+      type: object
+      required: [category]
+      properties:
+        category: { type: string, minLength: 1, maxLength: 50 }
+
+    NoteUpdate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string, minLength: 1, maxLength: 500 }
+
+    ErrorResponse:
+      type: object
+      properties:
+        message: { type: string }
+        status: { type: integer }

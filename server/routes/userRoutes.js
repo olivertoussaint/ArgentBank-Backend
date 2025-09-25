@@ -1,26 +1,25 @@
-const express = require('express')
-const router = express.Router()
-const userController = require('../controllers/userController')
-const tokenValidation = require('../middleware/tokenValidation')
+// server/routes/userRoutes.js
+const express = require("express");
+const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.json({ message: 'User routes are working!' });
-});
+const userController = require("../controllers/userController");
+const { validateToken } = require("../middleware");
+const {
+  validateSignup,
+  validateProfileUpdate,
+} = require("../middleware/validators");
 
-router.post('/signup', userController.createUser)
+// Auth / inscription
+router.post("/signup", validateSignup, userController.createUser); // ✅ ajoute la validation
+router.post("/login", userController.loginUser);
 
-router.post('/login', userController.loginUser)
-
-router.post(
-  '/profile',
-  tokenValidation.validateToken,
-  userController.getUserProfile
-)
-
+// Profil (Argent Bank spec : POST read, PUT update)
+router.post("/profile", validateToken, userController.getUserProfile);
 router.put(
-  '/profile',
-  tokenValidation.validateToken,
+  "/profile",
+  validateToken,
+  validateProfileUpdate,
   userController.updateUserProfile
-)
+);
 
-module.exports = router
+module.exports = router;
